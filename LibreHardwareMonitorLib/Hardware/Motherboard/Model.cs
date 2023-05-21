@@ -68,6 +68,7 @@ namespace LibreHardwareMonitor.Hardware.Motherboard
         B360M_PRO_VDH,
         B450A_PRO,
         Z270_PC_MATE,
+        Z77_MPower,
 
         // EVGA
         X58_SLI_Classified,

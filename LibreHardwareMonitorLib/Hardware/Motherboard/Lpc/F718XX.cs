@@ -26,7 +26,7 @@ namespace LibreHardwareMonitor.Hardware.Motherboard.Lpc
             Voltages = new float?[chip == Chip.F71858 ? 3 : 9];
             Temperatures = new float?[chip == Chip.F71808E ? 2 : 3];
             Fans = new float?[chip == Chip.F71882 || chip == Chip.F71858 ? 4 : 3];
-            Controls = new float?[chip == Chip.F71878AD ? 3 : 0];
+            Controls = new float?[chip == Chip.F71878AD || chip == Chip.F71889AD ? 3 : 0];
         }
 
         public Chip Chip { get; }
@@ -196,7 +196,14 @@ namespace LibreHardwareMonitor.Hardware.Motherboard.Lpc
 
             for (int i = 0; i < Controls.Length; i++)
             {
-                Controls[i] = ReadByte((byte)(PWM_VALUES_OFFSET + i)) * 100.0f / 0xFF;
+                if (Chip == Chip.F71889AD)
+                {
+                    Controls[i] = ReadByte((byte)(FAN_PWM_REG[i])) * 100.0f / 0xFF;
+                }
+                else
+                {
+                    Controls[i] = ReadByte((byte)(PWM_VALUES_OFFSET + i)) * 100.0f / 0xFF;
+                }
             }
 
             Ring0.ReleaseIsaBusMutex();
