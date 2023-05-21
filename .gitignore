@@ -1,0 +1,8 @@
+*.user
+*.suo
+Bin/
+Obj/
+.vs/
+packages/
+.git/
+.github/
