@@ -22,6 +22,7 @@ namespace LibreHardwareMonitor.Hardware
         private static KernelDriver _driver;
         private static string _fileName;
         private static Mutex _isaBusMutex;
+        private static Mutex _smBusMutex;
         private static Mutex _pciBusMutex;
 
         private static readonly StringBuilder _report = new StringBuilder();
@@ -216,6 +217,35 @@ namespace LibreHardwareMonitor.Hardware
             if (!_driver.IsOpen)
                 _driver = null;
 
+            const string smbusMutexName = "Global\\Access_SMBUS.HTP.Method";
+
+            try
+            {
+#if NETFRAMEWORK
+                //mutex permissions set to everyone to allow other software to access the hardware
+                //otherwise other monitoring software cant access
+                var allowEveryoneRule = new MutexAccessRule(new SecurityIdentifier(WellKnownSidType.WorldSid, null), MutexRights.FullControl, AccessControlType.Allow);
+                var securitySettings = new MutexSecurity();
+                securitySettings.AddAccessRule(allowEveryoneRule);
+                _smBusMutex = new Mutex(false, smbusMutexName, out _, securitySettings);
+#else
+                _smBusMutex = new Mutex(false, smbusMutexName);
+#endif
+            }
+            catch (UnauthorizedAccessException)
+            {
+                try
+                {
+#if NETFRAMEWORK
+                    _smBusMutex = Mutex.OpenExisting(smbusMutexName, MutexRights.Synchronize);
+#else
+                    _smBusMutex = Mutex.OpenExisting(smbusMutexName);
+#endif
+                }
+                catch
+                { }
+            }
+
             const string isaMutexName = "Global\\Access_ISABUS.HTP.Method";
 
             try
@@ -286,6 +316,12 @@ namespace LibreHardwareMonitor.Hardware
                 _isaBusMutex = null;
             }
 
+            if (_smBusMutex != null)
+            {
+                _smBusMutex.Close();
+                _smBusMutex = null;
+            }
+
             if (_pciBusMutex != null)
             {
                 _pciBusMutex.Close();
@@ -345,6 +381,30 @@ namespace LibreHardwareMonitor.Hardware
         public static void ReleaseIsaBusMutex()
         {
             _isaBusMutex?.ReleaseMutex();
+        }
+
+        public static bool WaitSmBusMutex(int millisecondsTimeout)
+        {
+            if (_smBusMutex == null)
+                return true;
+
+            try
+            {
+                return _smBusMutex.WaitOne(millisecondsTimeout, false);
+            }
+            catch (AbandonedMutexException)
+            {
+                return true;
+            }
+            catch (InvalidOperationException)
+            {
+                return false;
+            }
+        }
+
+        public static void ReleaseSmBusMutex()
+        {
+            _smBusMutex?.ReleaseMutex();
         }
 
         public static bool WaitPciBusMutex(int millisecondsTimeout)
@@ -424,6 +484,25 @@ namespace LibreHardwareMonitor.Hardware
 
 
             WriteIoPortInput input = new WriteIoPortInput { PortNumber = port, Value = value };
+            _driver.DeviceIOControl(Interop.Ring0.IOCTL_OLS_WRITE_IO_PORT_BYTE, input);
+        }
+
+        public static byte ReadSmbus(ushort port)
+        {
+            if (_driver == null)
+                return 0;
+
+            uint value = 0;
+            _driver.DeviceIOControl(Interop.Ring0.IOCTL_OLS_READ_IO_PORT_BYTE, port, ref value);
+            return (byte)(value & 0xFF);
+        }
+
+        public static void WriteSmbus(ushort port, byte value)
+        {
+            if (_driver == null)
+                return;
+
+            WriteIoPortInput input = new() { PortNumber = port, Value = value };
             _driver.DeviceIOControl(Interop.Ring0.IOCTL_OLS_WRITE_IO_PORT_BYTE, input);
         }
 

@@ -280,6 +280,11 @@ namespace LibreHardwareMonitor.Hardware.Motherboard
 
                     break;
                 }
+                case Chip.F75373S:
+                case Chip.F75375S:
+                case Chip.F75387:
+                    GetFintekF753XXConfiguration(superIO, manufacturer, model, v, t, f, c);
+                    break;
                 case Chip.W83627EHF:
                 {
                     GetWinbondConfigurationEhf(manufacturer, model, v, t, f);
@@ -1673,20 +1678,18 @@ namespace LibreHardwareMonitor.Hardware.Motherboard
                     break;
                 }
                 case Manufacturer.MSI:
-                {
-                    switch(model)
+                    switch (model)
                     {
                         case Model.Z77_MPower: // F71889AD
-                                {
-                            v.Add(new Voltage("Vcc3V", 0, 150, 150));
+                            v.Add(new Voltage("VCC3V", 0, 150, 150));
                             v.Add(new Voltage("Vcore", 1));
-                            v.Add(new Voltage("Vgpu", 2));
-                            v.Add(new Voltage("+5V", 3, 51.06f, 12));
+                            v.Add(new Voltage("GPU", 2));
+                            v.Add(new Voltage("+5V", 3, 20, 4.7f));
                             v.Add(new Voltage("+12V", 4, 68, 6.8f));
-                            v.Add(new Voltage("Vddr", 5, 150, 150));
-                            v.Add(new Voltage("Vccio", 6));
+                            v.Add(new Voltage("DRAM", 5, 150, 150));
+                            v.Add(new Voltage("CPU IO", 6));
                             v.Add(new Voltage("+3.3V", 7, 150, 150));
-                            v.Add(new Voltage("Vbat", 8, 150, 150));
+                            v.Add(new Voltage("VBat", 8, 150, 150));
 
                             t.Add(new Temperature("CPU", 0));
                             t.Add(new Temperature("Probe", 1));
@@ -1694,16 +1697,14 @@ namespace LibreHardwareMonitor.Hardware.Motherboard
 
                             f.Add(new Fan("CPU Fan", 0));
                             for (int i = 1; i < superIO.Fans.Length; i++)
-                                f.Add(new Fan("System Fan " + i, i));
+                                f.Add(new Fan("System Fan #" + i, i));
 
                             c.Add(new Ctrl("CPU Fan", 0));
                             for (int i = 1; i < superIO.Controls.Length; i++)
-                                c.Add(new Ctrl("System Fan " + i, i));
+                                c.Add(new Ctrl("System Fan #" + i, i));
 
                             break;
-                        }
                         default:
-                        {
                             v.Add(new Voltage("VCC3V", 0, 150, 150));
                             v.Add(new Voltage("Vcore", 1));
                             v.Add(new Voltage("Voltage #3", 2, true));
@@ -1726,11 +1727,9 @@ namespace LibreHardwareMonitor.Hardware.Motherboard
                                 c.Add(new Ctrl("Fan Control #" + (i + 1), i));
 
                             break;
-                        }
                     }
 
                     break;
-                }
                 default:
                 {
                     v.Add(new Voltage("VCC3V", 0, 150, 150));
@@ -1756,6 +1755,70 @@ namespace LibreHardwareMonitor.Hardware.Motherboard
 
                     break;
                 }
+            }
+        }
+
+        private static void GetFintekF753XXConfiguration(ISuperIO superIO, Manufacturer manufacturer, Model model, IList<Voltage> v, IList<Temperature> t, IList<Fan> f, IList<Ctrl> c)
+        {
+            switch (manufacturer)
+            {
+                case Manufacturer.MSI:
+                    switch (model)
+                    {
+                        case Model.Z77_MPower: // Probably rev 4.0+ (F75387)
+                            v.Add(new Voltage("VCC", 0, 150, 150));
+                            for (int i = 1; i < superIO.Voltages.Length; i++)
+                                v.Add(new Voltage("Voltage #" + i, i, true));
+
+                            t.Add(new Temperature("Temperature #1", 0));
+                            t.Add(new Temperature("Temperature #2", 1));
+                            if (superIO.Chip == Chip.F75387)
+                                t.Add(new Temperature("Local", 2));
+
+                            for (int i = 0; i < superIO.Fans.Length; i++)
+                                f.Add(new Fan("System Fan #" + (i + 3), i));
+
+                            for (int i = 0; i < superIO.Controls.Length; i++)
+                                c.Add(new Ctrl("System Fan #" + (i + 3), i));
+
+                            break;
+                        default:
+                            v.Add(new Voltage("VCC", 0, 150, 150));
+                            for (int i = 1; i < superIO.Voltages.Length; i++)
+                                v.Add(new Voltage("Voltage #" + i, i, true));
+
+                            t.Add(new Temperature("Temperature #1", 0));
+                            t.Add(new Temperature("Temperature #2", 1));
+                            if (superIO.Chip == Chip.F75387)
+                                t.Add(new Temperature("Local", 2));
+
+                            for (int i = 0; i < superIO.Fans.Length; i++)
+                                f.Add(new Fan("Fan #" + (i + 1), i));
+
+                            for (int i = 0; i < superIO.Controls.Length; i++)
+                                c.Add(new Ctrl("Fan #" + (i + 1), i));
+
+                            break;
+                    }
+                    break;
+
+                default:
+                    v.Add(new Voltage("VCC", 0, 150, 150));
+                    for (int i = 1; i < superIO.Voltages.Length; i++)
+                        v.Add(new Voltage("Voltage #" + i, i, true));
+
+                    t.Add(new Temperature("Temperature #1", 0));
+                    t.Add(new Temperature("Temperature #2", 1));
+                    if (superIO.Chip == Chip.F75387)
+                        t.Add(new Temperature("Local", 2));
+
+                    for (int i = 0; i < superIO.Fans.Length; i++)
+                        f.Add(new Fan("Fan #" + (i + 1), i));
+
+                    for (int i = 0; i < superIO.Controls.Length; i++)
+                        c.Add(new Ctrl("Fan #" + (i + 1), i));
+
+                    break;
             }
         }
 

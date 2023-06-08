@@ -72,6 +72,15 @@ namespace LibreHardwareMonitor.Hardware.Motherboard.Lpc
                         case "f71808e":
                             _superIOs.Add(new LMChip(Chip.F71808E, path));
                             break;
+                        case "F75373":
+                            _superIOs.Add(new LMChip(Chip.F75373S, path));
+                            break;
+                        case "F75375":
+                            _superIOs.Add(new LMChip(Chip.F75375S, path));
+                            break;
+                        case "f75387":
+                            _superIOs.Add(new LMChip(Chip.F75387, path));
+                            break;
 
                         case "it8705":
                             _superIOs.Add(new LMChip(Chip.IT8705F, path));
