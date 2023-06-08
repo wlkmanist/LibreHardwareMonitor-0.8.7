@@ -25,6 +25,7 @@ namespace LibreHardwareMonitor.Hardware
         {
             Identifier = new Identifier(sensor.Identifier, "control");
             _settings = settings;
+            Sensor = sensor;
             MinSoftwareValue = minSoftwareValue;
             MaxSoftwareValue = maxSoftwareValue;
 
@@ -61,6 +62,8 @@ namespace LibreHardwareMonitor.Hardware
         public float MaxSoftwareValue { get; }
 
         public float MinSoftwareValue { get; }
+
+        public ISensor Sensor { get; }
 
         public float SoftwareValue
         {
