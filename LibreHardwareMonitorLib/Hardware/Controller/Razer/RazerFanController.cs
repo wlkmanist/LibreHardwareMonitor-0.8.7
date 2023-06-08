@@ -52,7 +52,7 @@ internal sealed class RazerFanController : Hardware
             for (int i = 0; i < CHANNEL_COUNT; i++)
             {
                 // Fan Control
-                _pwmControls[i] = new Sensor("Fan Control #" + (i + 1), i, SensorType.Control, this, Array.Empty<ParameterDescription>(), settings);
+                _pwmControls[i] = new Sensor("Fan Control #" + (i + 1), i, SensorType.Control, this, new ParameterDescription[0], settings);
                 Control fanControl = new(_pwmControls[i], settings, PERCENT_MIN, PERCENT_MAX);
                 _pwmControls[i].Control = fanControl;
                 fanControl.ControlModeChanged += FanSoftwareControlValueChanged;
@@ -62,7 +62,7 @@ internal sealed class RazerFanController : Hardware
                 ActivateSensor(_pwmControls[i]);
 
                 // Fan RPM
-                _rpmSensors[i] = new Sensor("Fan #" + (i + 1), i, SensorType.Fan, this, Array.Empty<ParameterDescription>(), settings);
+                _rpmSensors[i] = new Sensor("Fan #" + (i + 1), i, SensorType.Fan, this, new ParameterDescription[0], settings);
                 ActivateSensor(_rpmSensors[i]);
             }
         }
